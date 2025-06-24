@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shell Explorer</title>
+  <style>
+    body { font-family: monospace; background: #121212; color: #eee; }
+    #output { white-space: pre-wrap; height: 400px; overflow-y: scroll; border: 1px solid #555; padding: 10px; }
+    #input { width: 100%; box-sizing: border-box; padding: 10px; background: #222; color: #eee; border: none; }
+  </style>
+</head>
+<body>
+  <h2>Shell Explorer</h2>
+  <div id="output"></div>
+  <input id="input" type="text" placeholder="Type your command here..." disabled />
+
+  <script>
+    const output = document.getElementById('output');
+    const input = document.getElementById('input');
+
+    const ws = new WebSocket('ws://localhost:3000');
+
+    ws.onopen = () => {
+      appendOutput('Connected to shell server.');
+    };
+
+    ws.onmessage = (event) => {
+      appendOutput(event.data);
+      if (event.data.includes('Please enter password:')) {
+        input.disabled = false;
+        input.focus();
+      }
+      if (event.data.includes('Authentication successful')) {
+        input.disabled = false;
+        input.focus();
+      }
+      if (event.data.includes('Shell exited')) {
+        input.disabled = true;
+      }
+    };
+
+    ws.onclose = () => {
+      appendOutput('\nDisconnected from server.');
+      input.disabled = true;
+    };
+
+    ws.onerror = (e) => {
+      appendOutput('\nWebSocket error: ' + e.message);
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        ws.send(input.value.trim());
+        input.value = '';
+      }
+    });
+
+    function appendOutput(text) {
+      output.textContent += text + '\n';
+      output.scrollTop = output.scrollHeight;
+    }
+  </script>
+</body>
+</html>
