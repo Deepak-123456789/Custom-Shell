@@ -273,7 +273,7 @@ char *getPasswordFromEnvFile()
 
     while (fgets(line, sizeof(line), file))
     {
-        if (strncmp(line, "SHELL_PASSWORD=", 15) == 0)
+        if (strncmp(line, "SHELL_PASSWORD", 14) == 0)
         {
             strcpy(password, line + 15);
             password[strcspn(password, "\n")] = 0;
